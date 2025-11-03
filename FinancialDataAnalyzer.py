@@ -39,3 +39,31 @@ class MultiSourceFinancialAnalyzer:
                 print("Alpha vantage rate limit reached. Waiting...")
                 time.sleep(60)
                 return self.fetch_alpha_vantage_data(symbol, months)
+            
+            time_series = data.get('Time Series (Daily)', {})
+            if not time_series:
+                print("No Alpha Vantage data found.")
+                return None
+            
+            # Time to convert to DataFrame
+            df = pd.DataFrame.from_dict(time_series, orient='index')
+            df = df.astype(float)
+            df.columns = ['open', 'high', 'low', 'close', 'volume']
+            df.index = pd.to_datetime(df.index)
+            df = df.sort_index()
+
+            # Limit to requested period
+            cutoff_date = df.index.max() - pd.DateOffset(months=months)
+            df = df[df.index >= cutoff_date]
+
+            print(f"✔️ Alpha Vantage: {len(df)} days of data")
+            return df
+        
+        except Exception as e:
+            print(f"Alpha Vantage fetch failed: {e}")
+            return None
+        
+        def fetch_yahoo_finance_data(self, symbol, months=6):
+            """
+            
+            """
