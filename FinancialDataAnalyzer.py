@@ -93,4 +93,48 @@ class MultiSourceFinancialAnalyzer:
                 print(f"Yahoo Finance fetch failed: {e}")
                 return None
             
-            def
+            def compare_data_sources(self, df_av, df_yf, symbol):
+                """
+                Compare data from both sources and identify discrepancies
+                """
+                print(f"\n{'='*60}")
+                print("DATA SOURCE COMPARISON")
+                print(f"{'='*60}")
+
+                if df_av is None or df_yf is None:
+                    print("Cannot compare - one or both data sources failed.")
+                    return None
+                
+                # Find common dates
+                common_dates = df_av.index.intersection(df_yf.index)
+
+                if len(common_dates) == 0:
+                    print("No common dates between data sources.")
+                    return None
+                
+                print(f"Common trading days: {len(common_dates)}")
+
+                # Compare closing prices
+                av_prices = df_av.loc[common_dates, 'close']
+                yf_prices = df_yf.loc[common_dates, 'close']
+
+                # Calculate differences
+                price_differences = abs(av_prices - yf_prices)
+                avg_differences = price_differences.mean()
+                max_differences = price_differences.max()
+
+                print(f"Average price difference: ${avg_difference:.4f}")
+                print(f"Maximum price difference: ${max_difference:.4f}")
+
+                # Show dates with largest discrepancies
+                if max_difference > 0.01: # Only show if there are meaningful differences
+                    top_discrepancies = price_difference.nlargest(3)
+                    print("\nLargest discrepancies:")
+
+                    for date, diff in top_discrepancies.items():
+                        av_price = df_av.loc[date, 'close']
+                        yf_price = df_yf.loc[date, 'close']
+                        print(f" {date.date()}: AlphaVantage=${av_price:.2f}, Yahoo=${yf_price:.2f}, Diff=${diff:.2f}")
+
+                return common_dates
+
