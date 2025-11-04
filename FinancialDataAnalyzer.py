@@ -65,5 +65,32 @@ class MultiSourceFinancialAnalyzer:
         
         def fetch_yahoo_finance_data(self, symbol, months=6):
             """
-            
+            Fetch data from Yahoo Finance API
             """
+            print(f"Fetching {symbol} data from Yahoo Finance...")
+
+            try:
+                # Calculate date range
+                end_date = datetime.now()
+                start_date = end_date() - timedelta(days=months*30)
+
+                # Download data
+                ticker = yf.Ticker(symbol)
+                df = ticker.history(start=start_date, end=end_date)
+
+                if df.empty:
+                    print("No Yahoo Finance data found.")
+                    return None
+                
+                # Rename columns to match our format
+                df = df[['Open', 'High', 'Low', 'Close', 'Volume']]
+                df.columns = ['open', 'high', 'low', 'close', 'volume']
+
+                print(f"✔️ Yahoo Finance: {len(df)} days of data")
+                return df
+            
+            except Exception as e:
+                print(f"Yahoo Finance fetch failed: {e}")
+                return None
+            
+            def
