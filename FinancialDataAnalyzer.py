@@ -158,4 +158,25 @@ class MultiSourceFinancialAnalyzer:
 
                     return primary_df
                 
+            def calculate_technical_indicators(self, df):
+                """Calculate technical indicators"""
+                df = df.copy()
+
+                # Moving averages
+                df['sma_20'] = df['close'].rolling(window=20).mean()
+                df['sma_50'] = df['close'].rolling(window=50).mean()
+
+                # Daily returns and volatility
+                df['daily_return'] = df['close'].pct_change() * 100
+                df['volatility_20'] = df['daily_return'].rolling(window=20).std()
+
+                # Relative Strength Index (RSI)
+                delta = df['close'].diff()
+                gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+                loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+                rs = gain / loss
+                df['rsi'] = 100 - (100 / (1 + rs))
+
+                return df
             
+            def generate_signals(self, df):
