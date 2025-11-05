@@ -180,3 +180,20 @@ class MultiSourceFinancialAnalyzer:
                 return df
             
             def generate_signals(self, df):
+                """Generate trading signals using multiple indicators"""
+                df = df.copy()
+                df['signal'] = 0
+                
+                # SMA Crossover strategy
+                sma_signal = np.where(df['sma_20'] > df['sma_50'], 1, -1)
+                
+                # RSI-based signals (oversold/overbought)
+                rsi_signal = np.where(df['rsi'] < 30, 1, np.where(df['rsi'] > 70, -1, 0))
+                
+                # Combined signal (simple logic - can be enhanced)
+                df['signal'] = np.where((sma_signal == 1) & (rsi_signal == 1), 2,  # Strong buy
+                            np.where((sma_signal == -1) & (rsi_signal == -1), -2, # Strong sell
+                            np.where(sma_signal == 1, 1, # Weak buy
+                            np.where(sma_signal == -1, -1, 0)))) # Weak sell
+                
+                return df
