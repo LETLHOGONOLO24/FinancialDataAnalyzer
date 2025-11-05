@@ -72,7 +72,7 @@ class MultiSourceFinancialAnalyzer:
             try:
                 # Calculate date range
                 end_date = datetime.now()
-                start_date = end_date() - timedelta(days=months*30)
+                start_date = end_date - timedelta(days=months*30)
 
                 # Download data
                 ticker = yf.Ticker(symbol)
@@ -138,3 +138,24 @@ class MultiSourceFinancialAnalyzer:
 
                 return common_dates
 
+            def merge_data_sources(self, df_av, df_yf):
+                """
+                Create a merged dataset, preferring one source over another or creating averages
+                """
+                if df_av is None and df_yf is None:
+                    print("Both data sources failed. Cannot merge.")
+                    return None
+                elif df_av is None:
+                    print("Using Yahoo Finance data (Alpha Vantage failed)")
+                    return df_yf
+                elif df_yf is None:
+                    print("Using Alpha Vantage data (Yahoo Finance failed)")
+                    return df_av
+                else:
+                    # Both sources available - use Yahoo Finance as primary (more reliable)
+                    print("Using Yahoo Finance as primary data source")
+                    primary_df = df_yf.copy()
+
+                    return primary_df
+                
+            
