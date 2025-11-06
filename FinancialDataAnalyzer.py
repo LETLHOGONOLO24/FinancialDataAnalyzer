@@ -228,3 +228,92 @@ class MultiSourceFinancialAnalyzer:
             print(f"Average RSI: {df['rsi'].mean():.1f}")
             print(f"Oversold Days (RSI < 30): {(df['rsi'] < 30).sum()}")
             print(f"Overbought Days (RSI > 70): {(df['rsi'] > 70).sum()}")
+
+    def plot_comprehensive_analysis(self, df, symbol, df_av=None, df_yf=None):
+        """Create comprehensive visualization"""
+        if df is None:
+            print("No data to plot.")
+            return
+            
+        fig = plt.figure(figsize=(15, 12))
+        
+        # Create subplots
+        gs = plt.GridSpec(4, 2, figure=fig)
+        ax1 = fig.add_subplot(gs[0, :])  # Price and indicators
+        ax2 = fig.add_subplot(gs[1, :])  # Daily returns
+        ax3 = fig.add_subplot(gs[2, 0])  # RSI
+        ax4 = fig.add_subplot(gs[2, 1])  # Volume
+        ax5 = fig.add_subplot(gs[3, :])  # Data source comparison (if available)
+        
+        # Plot 1: Price and Moving Averages
+        ax1.plot(df.index, df['close'], label='Close Price', linewidth=1, color='black')
+        ax1.plot(df.index, df['sma_20'], label='20-day SMA', linewidth=1.5, color='blue', alpha=0.8)
+        ax1.plot(df.index, df['sma_50'], label='50-day SMA', linewidth=1.5, color='red', alpha=0.8)
+        
+        # Plot signals
+        if 'signal' in df.columns:
+            strong_buy = df[df['signal'] == 2]
+            strong_sell = df[df['signal'] == -2]
+            weak_buy = df[df['signal'] == 1]
+            weak_sell = df[df['signal'] == -1]
+            
+            ax1.scatter(strong_buy.index, strong_buy['close'], 
+                       color='darkgreen', marker='^', s=100, label='Strong Buy', zorder=5)
+            ax1.scatter(strong_sell.index, strong_sell['close'], 
+                       color='darkred', marker='v', s=100, label='Strong Sell', zorder=5)
+            ax1.scatter(weak_buy.index, weak_buy['close'], 
+                       color='lightgreen', marker='^', s=60, label='Weak Buy', alpha=0.7, zorder=4)
+            ax1.scatter(weak_sell.index, weak_sell['close'], 
+                       color='lightcoral', marker='v', s=60, label='Weak Sell', alpha=0.7, zorder=4)
+        
+        ax1.set_title(f'{symbol} - Technical Analysis', fontsize=14, fontweight='bold')
+        ax1.set_ylabel('Price ($)')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # Plot 2: Daily Returns
+        colors = ['red' if x < 0 else 'green' for x in df['daily_return']]
+        ax2.bar(df.index, df['daily_return'], color=colors, alpha=0.7)
+        ax2.set_title('Daily Returns (%)')
+        ax2.set_ylabel('Return (%)')
+        ax2.grid(True, alpha=0.3)
+        
+        # Plot 3: RSI
+        ax3.plot(df.index, df['rsi'], color='purple', linewidth=1.5)
+        ax3.axhline(70, color='red', linestyle='--', alpha=0.7, label='Overbought')
+        ax3.axhline(30, color='green', linestyle='--', alpha=0.7, label='Oversold')
+        ax3.set_title('Relative Strength Index (RSI)')
+        ax3.set_ylabel('RSI')
+        ax3.set_ylim(0, 100)
+        ax3.legend()
+        ax3.grid(True, alpha=0.3)
+        
+        # Plot 4: Volume
+        ax4.bar(df.index, df['volume'] / 1e6, color='gray', alpha=0.7)
+        ax4.set_title('Trading Volume')
+        ax4.set_ylabel('Volume (Millions)')
+        ax4.grid(True, alpha=0.3)
+        
+        # Plot 5: Data Source Comparison (if both sources available)
+        if df_av is not None and df_yf is not None:
+            common_dates = df_av.index.intersection(df_yf.index)
+            if len(common_dates) > 0:
+                ax5.plot(common_dates, df_av.loc[common_dates, 'close'], 
+                        label='Alpha Vantage', alpha=0.7)
+                ax5.plot(common_dates, df_yf.loc[common_dates, 'close'], 
+                        label='Yahoo Finance', alpha=0.7)
+                ax5.set_title('Data Source Comparison (Closing Prices)')
+                ax5.set_ylabel('Price ($)')
+                ax5.legend()
+                ax5.grid(True, alpha=0.3)
+            else:
+                ax5.text(0.5, 0.5, 'No common dates for comparison', 
+                        ha='center', va='center', transform=ax5.transAxes)
+                ax5.set_title('Data Source Comparison')
+        else:
+            ax5.text(0.5, 0.5, 'Only one data source available', 
+                    ha='center', va='center', transform=ax5.transAxes)
+            ax5.set_title('Data Source Comparison')
+        
+        plt.tight_layout()
+        plt.show()
