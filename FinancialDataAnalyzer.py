@@ -197,3 +197,34 @@ class MultiSourceFinancialAnalyzer:
                        np.where(sma_signal == -1, -1, 0)))) # Weak sell
                 
         return df
+    
+    def analyze_performance(self, df, symbol):
+        """Comprehensive performance analysis"""
+        print(f"\n{'='*50}")
+        print(f"PERFORMANCE ANALYSIS: {symbol}")
+        print(f"{'='*50}")
+
+        if df is None or len(df) == 0:
+            print("No data to analyze.")
+            return
+        
+        print(f"Analysis Period: {df.index.min().date()} to {df.index.max().date()}")
+        print(f"Total Trading Days: {len(df)}")
+        print(f"Initial Price: ${df['close'].iloc[0]:.2f}")
+        print(f"Final Price: ${df['close'].iloc[-1]:.2f}")
+        
+        # Returns
+        total_return = ((df['close'].iloc[-1] - df['close'].iloc[0]) / df['close'].iloc[0]) * 100
+        print(f"Total Return: {total_return:.2f}%")
+        
+        # Risk metrics
+        print(f"Average Daily Return: {df['daily_return'].mean():.3f}%")
+        print(f"Daily Return Volatility: {df['daily_return'].std():.3f}%")
+        print(f"Maximum Daily Gain: {df['daily_return'].max():.3f}%")
+        print(f"Maximum Daily Loss: {df['daily_return'].min():.3f}%")
+        
+        # RSI statistics
+        if 'rsi' in df.columns:
+            print(f"Average RSI: {df['rsi'].mean():.1f}")
+            print(f"Oversold Days (RSI < 30): {(df['rsi'] < 30).sum()}")
+            print(f"Overbought Days (RSI > 70): {(df['rsi'] > 70).sum()}")
